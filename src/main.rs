@@ -8,9 +8,11 @@ pub mod driver;
 pub mod lexer;
 pub mod parser;
 
+const LONG_ABOUT: &'static str = r#"nqcc - The Not Quite C compiler written in Rust"#;
+
 /// nqcc - The Not Quite C compiler written in Rust
 #[derive(Parser, Debug)]
-#[command(author, version, about, long_about = None)]
+#[command(author, version, about, long_about = Some(LONG_ABOUT))]
 pub struct Cli {
     /// Input C file
     filename: PathBuf,
