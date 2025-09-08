@@ -1,12 +1,14 @@
 use std::{path::PathBuf, process::Command};
 
-pub fn execute(filename: String) {
-    let preprocessed_file = preprocess_file(filename.clone());
-    let asm_file = generate_asm(preprocessed_file);
+use crate::Cli;
+
+pub fn execute(cli_args: Cli) {
+    let preprocessed_file = preprocess_file(cli_args.filename.clone());
+    let asm_file = run_compiler(cli_args, preprocessed_file);
     assemble_and_link(asm_file);
 }
 
-fn preprocess_file(filename: String) -> PathBuf {
+fn preprocess_file(filename: PathBuf) -> PathBuf {
     let input_file = std::fs::canonicalize(filename.clone()).expect("Filepath does not exist");
     let mut output_file = input_file.clone();
     if !output_file.set_extension("i") {
@@ -37,7 +39,8 @@ fn preprocess_file(filename: String) -> PathBuf {
     output_file
 }
 
-fn generate_asm(preprocessed_file: PathBuf) -> PathBuf {
+fn run_compiler(cli_args: Cli, preprocessed_file: PathBuf) -> PathBuf {
+    _ = cli_args;
     let input_file = preprocessed_file.clone();
     let mut output_file = preprocessed_file.clone();
     if !output_file.set_extension("s") {
