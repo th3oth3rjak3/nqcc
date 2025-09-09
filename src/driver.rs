@@ -1,6 +1,6 @@
 use std::{path::PathBuf, process::Command};
 
-use crate::Cli;
+use crate::{Cli, lexer::Lexer};
 
 pub fn execute(cli_args: Cli) {
     let preprocessed_file = preprocess_file(cli_args.filename.clone());
@@ -46,6 +46,23 @@ fn run_compiler(cli_args: Cli, preprocessed_file: PathBuf) -> PathBuf {
     if !output_file.set_extension("s") {
         eprintln!("Failed to set file extension for assembly file.");
         std::process::exit(1);
+    }
+
+    let source = match std::fs::read_to_string(input_file.clone()) {
+        Ok(src) => src,
+        Err(e) => {
+            eprintln!("Failed to open source file for compilation: {:?}", e);
+            std::process::exit(1);
+        }
+    };
+
+    let source_chars = source.chars().collect::<Vec<_>>();
+    let mut lexer = Lexer::new(&source_chars);
+    let tokens = lexer.tokenize();
+
+    if cli_args.lex {
+        println!("TOKENS: {:#?}", &tokens);
+        std::process::exit(0);
     }
 
     // TODO: actually use the compiler to produce asm, for now we stub out the contents of the asm
