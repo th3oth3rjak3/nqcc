@@ -122,12 +122,8 @@ impl<'src> Lexer<'src> {
                 return Token::new(TokenKind::Semicolon, start, self.offset);
             }
             _ => {
-                self.advance();
-                return Token::new(
-                    TokenKind::Error(format!("Unexpected character: '{ch}'")),
-                    start,
-                    self.offset,
-                );
+                eprintln!("Unexpected character: {ch}");
+                std::process::exit(1);
             }
         }
     }
@@ -192,6 +188,11 @@ impl<'src> Lexer<'src> {
             self.advance();
         }
 
+        if is_letter_or_underscore(self.peek()) {
+            eprintln!("Invalid identifier");
+            std::process::exit(1);
+        }
+
         if self.peek() != '.' && !is_digit(self.peek_next()) {
             let literal: String = self.source[start..self.offset].iter().collect();
             match literal.parse() {
@@ -199,7 +200,8 @@ impl<'src> Lexer<'src> {
                     return Token::new(TokenKind::IntegerLiteral(val), start, self.offset);
                 }
                 Err(e) => {
-                    return Token::new(TokenKind::Error(e.to_string()), start, self.offset);
+                    eprintln!("Error parsing integer literal: {e}");
+                    std::process::exit(1);
                 }
             };
         }
@@ -210,13 +212,19 @@ impl<'src> Lexer<'src> {
             self.advance();
         }
 
+        if is_letter_or_underscore(self.peek()) {
+            eprintln!("Invalid identifier");
+            std::process::exit(1);
+        }
+
         let literal: String = self.source[start..self.offset].iter().collect();
         match literal.parse() {
             Ok(val) => {
                 return Token::new(TokenKind::FloatLiteral(val), start, self.offset);
             }
             Err(e) => {
-                return Token::new(TokenKind::Error(e.to_string()), start, self.offset);
+                eprintln!("Error parsing integer literal: {e}");
+                std::process::exit(1);
             }
         };
     }
