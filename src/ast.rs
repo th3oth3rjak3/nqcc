@@ -1,22 +1,31 @@
-pub struct Identifier {
-    pub name: String,
+#[derive(Debug, Clone)]
+pub struct Identifier(pub String);
+
+impl Identifier {
+    pub fn name(&self) -> String {
+        self.0.clone()
+    }
 }
 
-pub enum Function {
-    FunctionLiteral {
-        name: Identifier,
-        return_type: Identifier,
-        body: Statement,
-        params: Vec<Expression>,
-    },
+#[derive(Debug, Clone)]
+pub struct FunctionDefinition {
+    pub name: Identifier,
+    pub return_type: Identifier,
+    pub body: Statement,
+    pub params: Vec<Expression>,
 }
 
+#[derive(Debug, Clone)]
 pub enum Statement {
     ReturnStatement(Option<Expression>),
 }
 
+#[derive(Debug, Clone)]
 pub enum Expression {
     IntegerConstant(i64),
+    FloatConstant(f64),
+    BooleanConstant(bool),
+    StringConstant(String),
     If {
         condition: Box<Expression>,
         consequence: Box<Statement>,
@@ -24,9 +33,12 @@ pub enum Expression {
     },
 }
 
+#[derive(Debug, Clone)]
+pub struct Program(pub FunctionDefinition);
+
+#[derive(Debug, Clone)]
 pub enum AstNode {
-    Program(Function),
-    Function(Function),
+    Function(FunctionDefinition),
     Statement(Statement),
     Expression(Expression),
 }

@@ -1,6 +1,6 @@
 use std::{path::PathBuf, process::Command};
 
-use crate::{Cli, lexer::Lexer};
+use crate::{Cli, lexer::Lexer, parser::Parser};
 
 pub fn execute(cli_args: Cli) {
     let preprocessed_file = preprocess_file(cli_args.filename.clone());
@@ -62,6 +62,14 @@ fn run_compiler(cli_args: Cli, preprocessed_file: PathBuf) -> PathBuf {
 
     if cli_args.lex {
         println!("TOKENS: {:#?}", &tokens);
+        std::process::exit(0);
+    }
+
+    let mut parser = Parser::new(tokens);
+    let program = parser.parse_program();
+
+    if cli_args.parse {
+        println!("PROGRAM: {:#?}", &program);
         std::process::exit(0);
     }
 
