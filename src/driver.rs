@@ -60,13 +60,29 @@ fn run_compiler(cli_args: Cli, preprocessed_file: PathBuf) -> PathBuf {
     let mut lexer = Lexer::new(&source_chars);
     let tokens = lexer.tokenize();
 
+    let errors = lexer.errors();
+
+    if errors.len() > 0 {
+        errors.iter().for_each(|err| {
+            eprintln!("{err}");
+        });
+
+        std::process::exit(1);
+    }
+
     if cli_args.lex {
         println!("TOKENS: {:#?}", &tokens);
         std::process::exit(0);
     }
 
     let mut parser = Parser::new(tokens);
-    let program = parser.parse_program();
+    let program = match parser.parse_program() {
+        Ok(p) => p,
+        Err(e) => {
+            eprintln!("{e}");
+            std::process::exit(1);
+        }
+    };
 
     if cli_args.parse {
         println!("PROGRAM: {:#?}", &program);

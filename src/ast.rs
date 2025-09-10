@@ -1,3 +1,5 @@
+use crate::types;
+
 #[derive(Debug, Clone)]
 pub struct Identifier(pub String);
 
@@ -7,12 +9,10 @@ impl Identifier {
     }
 }
 
-#[derive(Debug, Clone)]
-pub struct FunctionDefinition {
-    pub name: Identifier,
-    pub return_type: Identifier,
-    pub body: Statement,
-    pub params: Vec<Expression>,
+#[derive(Debug, Clone, Copy)]
+pub enum StorageClass {
+    Static,
+    Extern,
 }
 
 #[derive(Debug, Clone)]
@@ -22,9 +22,9 @@ pub enum Statement {
 
 #[derive(Debug, Clone)]
 pub enum Expression {
-    IntegerConstant(i64),
-    FloatConstant(f64),
-    BooleanConstant(bool),
+    ConstInt(i32),
+    ConstLong(i64),
+    ConstDouble(f64),
     StringConstant(String),
     If {
         condition: Box<Expression>,
@@ -34,11 +34,41 @@ pub enum Expression {
 }
 
 #[derive(Debug, Clone)]
-pub struct Program(pub FunctionDefinition);
+pub struct Program(pub Vec<Declaration>);
 
 #[derive(Debug, Clone)]
-pub enum AstNode {
-    Function(FunctionDefinition),
-    Statement(Statement),
-    Expression(Expression),
+pub enum BlockItem {
+    Stmt(Statement),
+    Decl(Declaration),
+}
+
+#[derive(Debug, Clone)]
+pub struct Block(pub Vec<BlockItem>);
+
+#[derive(Debug, Clone)]
+pub struct FunctionParam {
+    pub typ: types::T,
+    pub name: String,
+}
+
+#[derive(Debug, Clone)]
+pub struct FunctionDeclaration {
+    pub name: String,
+    pub return_type: types::T,
+    pub params: Vec<FunctionParam>,
+    pub body: Option<Block>,
+    pub storage_class: Option<StorageClass>,
+}
+
+#[derive(Debug, Clone)]
+pub struct VariableDeclaration {}
+
+#[derive(Debug, Clone)]
+pub struct StructDeclaration {}
+
+#[derive(Debug, Clone)]
+pub enum Declaration {
+    FunDecl(FunctionDeclaration),
+    VarDecl(VariableDeclaration),
+    StructDecl(StructDeclaration),
 }

@@ -2,11 +2,15 @@ use std::path::PathBuf;
 
 use clap::{ArgAction, Parser};
 
+pub mod asm;
 pub mod ast;
 pub mod codegen;
 pub mod driver;
+pub mod errors;
 pub mod lexer;
 pub mod parser;
+pub mod tokens;
+pub mod types;
 
 const LONG_ABOUT: &'static str = r#"nqcc - The Not Quite C compiler written in Rust"#;
 

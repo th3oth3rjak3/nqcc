@@ -1,56 +1,7 @@
-#[derive(Debug, Clone)]
-pub struct Token {
-    pub kind: TokenKind,
-    pub start: usize,
-    pub end: usize,
-}
-
-impl Token {
-    pub fn new(kind: TokenKind, start: usize, end: usize) -> Self {
-        Self { kind, start, end }
-    }
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum TokenKind {
-    // Dyanmically defined values
-    Identifier(String),
-    IntegerLiteral(i64),
-    FloatLiteral(f64),
-    // StringLiteral(String),
-    // BooleanLiteral(bool),
-
-    // Keywords
-    Int,
-    Void,
-    Return,
-
-    // Delimiters
-    LeftParen,
-    RightParen,
-    LeftBrace,
-    RightBrace,
-    // LeftBracket,
-    // RightBracket,
-    Semicolon,
-    // Operators
-    // Plus,
-    // Minus,
-    // Star,
-    // Slash,
-    // Equal,
-    // EqualEqual,
-    // BangEqual,
-    // Bang,
-    // Greater,
-    // Less,
-    // GreaterEqual,
-    // LessEqual,
-
-    // Special
-    EOF,
-    Error(String),
-}
+use crate::{
+    errors::CompilerError,
+    tokens::{Token, TokenKind},
+};
 
 pub struct Lexer<'src> {
     source: &'src [char],
@@ -58,6 +9,7 @@ pub struct Lexer<'src> {
     column: usize,
     offset: usize,
     line_offset: usize,
+    errors: Vec<CompilerError>,
 }
 
 impl<'src> Lexer<'src> {
@@ -68,7 +20,12 @@ impl<'src> Lexer<'src> {
             column: 1,
             offset: 0,
             line_offset: 0,
+            errors: Vec::new(),
         }
+    }
+
+    pub fn errors(&self) -> Vec<CompilerError> {
+        self.errors.iter().cloned().collect()
     }
 
     pub fn tokenize(&mut self) -> Vec<Token> {
@@ -76,24 +33,32 @@ impl<'src> Lexer<'src> {
 
         while !self.is_at_end() {
             let tok = self.next_token();
-            out.push(tok);
+            match tok {
+                Ok(tok) => {
+                    out.push(tok.clone());
+                    if tok.kind == TokenKind::EOF {
+                        break;
+                    }
+                }
+                Err(e) => self.errors.push(e),
+            }
         }
 
         out
     }
 
-    fn next_token(&mut self) -> Token {
+    fn next_token(&mut self) -> Result<Token, CompilerError> {
         self.skip_whitespace();
 
         let start = self.offset;
 
         let ch = self.peek();
         if ch == '\0' {
-            return Token::new(TokenKind::EOF, start, start);
+            return self.make_token(TokenKind::EOF, start, false);
         }
 
         if is_letter_or_underscore(ch) {
-            return self.handle_ident(start);
+            return Ok(self.handle_ident(start));
         }
 
         if is_digit(ch) {
@@ -101,30 +66,12 @@ impl<'src> Lexer<'src> {
         }
 
         match ch {
-            '(' => {
-                self.advance();
-                return Token::new(TokenKind::LeftParen, start, self.offset);
-            }
-            ')' => {
-                self.advance();
-                return Token::new(TokenKind::RightParen, start, self.offset);
-            }
-            '{' => {
-                self.advance();
-                return Token::new(TokenKind::LeftBrace, start, self.offset);
-            }
-            '}' => {
-                self.advance();
-                return Token::new(TokenKind::RightBrace, start, self.offset);
-            }
-            ';' => {
-                self.advance();
-                return Token::new(TokenKind::Semicolon, start, self.offset);
-            }
-            _ => {
-                eprintln!("Unexpected character: {ch}");
-                std::process::exit(1);
-            }
+            '(' => self.make_token(TokenKind::LeftParen, start, true),
+            ')' => self.make_token(TokenKind::RightParen, start, true),
+            '{' => self.make_token(TokenKind::LeftBrace, start, true),
+            '}' => self.make_token(TokenKind::RightBrace, start, true),
+            ';' => self.make_token(TokenKind::Semicolon, start, true),
+            _ => self.make_error(format!("unexpected character '{ch}'"), true),
         }
     }
 
@@ -138,6 +85,33 @@ impl<'src> Lexer<'src> {
             self.column += 1;
             self.offset += 1;
         }
+    }
+
+    fn make_token(
+        &mut self,
+        kind: TokenKind,
+        start: usize,
+        advance: bool,
+    ) -> Result<Token, CompilerError> {
+        if advance {
+            self.advance();
+        }
+
+        Ok(Token::new(kind, start, self.offset))
+    }
+
+    fn make_error(&mut self, message: String, advance: bool) -> Result<Token, CompilerError> {
+        let err = CompilerError::LexError {
+            message: message,
+            line: self.line,
+            column: self.column,
+        };
+
+        if advance {
+            self.advance();
+        }
+
+        Err(err)
     }
 
     fn is_at_end(&mut self) -> bool {
@@ -183,26 +157,20 @@ impl<'src> Lexer<'src> {
         }
     }
 
-    fn handle_number(&mut self, start: usize) -> Token {
+    fn handle_number(&mut self, start: usize) -> Result<Token, CompilerError> {
         while !self.is_at_end() && is_digit(self.peek()) {
             self.advance();
         }
 
         if is_letter_or_underscore(self.peek()) {
-            eprintln!("Invalid identifier");
-            std::process::exit(1);
+            return self.make_error("invalid identifier".into(), false);
         }
 
         if self.peek() != '.' && !is_digit(self.peek_next()) {
             let literal: String = self.source[start..self.offset].iter().collect();
-            match literal.parse() {
-                Ok(val) => {
-                    return Token::new(TokenKind::IntegerLiteral(val), start, self.offset);
-                }
-                Err(e) => {
-                    eprintln!("Error parsing integer literal: {e}");
-                    std::process::exit(1);
-                }
+            return match literal.parse() {
+                Ok(val) => self.make_token(TokenKind::ConstInt(val), start, false),
+                Err(e) => self.make_error(format!("Error parsing integer literal: {e}"), false),
             };
         }
 
@@ -213,20 +181,14 @@ impl<'src> Lexer<'src> {
         }
 
         if is_letter_or_underscore(self.peek()) {
-            eprintln!("Invalid identifier");
-            std::process::exit(1);
+            return self.make_error("invalid identifier".into(), false);
         }
 
         let literal: String = self.source[start..self.offset].iter().collect();
         match literal.parse() {
-            Ok(val) => {
-                return Token::new(TokenKind::FloatLiteral(val), start, self.offset);
-            }
-            Err(e) => {
-                eprintln!("Error parsing integer literal: {e}");
-                std::process::exit(1);
-            }
-        };
+            Ok(val) => self.make_token(TokenKind::ConstDouble(val), start, false),
+            Err(e) => self.make_error(format!("Error parsing double literal: {e}"), false),
+        }
     }
 }
 
