@@ -1,7 +1,4 @@
-use crate::{
-    asm::{self, Instruction, TopLevel},
-    errors::{self, CompilerError},
-};
+use crate::asm::{self, Instruction, TopLevel};
 
 #[derive(Debug, Clone, Copy)]
 pub struct CodeEmitter;
@@ -88,9 +85,5 @@ impl CodeEmitter {
             }
             asm::Instruction::Ret => "ret".into(),
         }
-    }
-
-    fn write_asm_to_file(&mut self, asm: String) -> Result<(), CompilerError> {
-        todo!("write this one")
     }
 }

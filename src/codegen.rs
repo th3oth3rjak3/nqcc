@@ -1,6 +1,6 @@
 use crate::asm::{self, AsmType, Operand, Register};
 use crate::asm::{Instruction, Program, TopLevel};
-use crate::ast::{self, Declaration, FunctionDeclaration};
+use crate::ast::{self, Declaration};
 
 pub struct CodeGenerator;
 
@@ -46,7 +46,6 @@ impl CodeGenerator {
                             }
                             instructions.push(Instruction::Ret);
                         }
-                        _ => todo!("handle other statements"),
                     },
                     _ => todo!("handle other block items"),
                 }
@@ -60,10 +59,10 @@ impl CodeGenerator {
         }
     }
 
-    fn generate_variable() -> Vec<Instruction> {
-        todo!()
-    }
-    fn generate_structure() -> Vec<Instruction> {
-        todo!()
-    }
+    // fn generate_variable() -> Vec<Instruction> {
+    //     todo!()
+    // }
+    // fn generate_structure() -> Vec<Instruction> {
+    //     todo!()
+    // }
 }
