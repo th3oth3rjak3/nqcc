@@ -13,3 +13,4 @@ devenv.local.nix
 
 /target
 source_files/return_2
+source_files/**/*.s

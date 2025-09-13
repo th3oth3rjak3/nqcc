@@ -1,11 +1,13 @@
 use std::{path::PathBuf, process::Command};
 
-use crate::{Cli, lexer::Lexer, parser::Parser};
+use crate::{
+    Cli, code_emission::CodeEmitter, codegen::CodeGenerator, lexer::Lexer, parser::Parser,
+};
 
 pub fn execute(cli_args: Cli) {
     let preprocessed_file = preprocess_file(cli_args.filename.clone());
-    let asm_file = run_compiler(cli_args, preprocessed_file);
-    assemble_and_link(asm_file);
+    let asm_file = run_compiler(cli_args.clone(), preprocessed_file);
+    assemble_and_link(cli_args, asm_file);
 }
 
 fn preprocess_file(filename: PathBuf) -> PathBuf {
@@ -89,17 +91,18 @@ fn run_compiler(cli_args: Cli, preprocessed_file: PathBuf) -> PathBuf {
         std::process::exit(0);
     }
 
-    // TODO: actually use the compiler to produce asm, for now we stub out the contents of the asm
-    let fake_asm: &str = r#"        .text
-    .globl main
-main:
-        movl    $2, %eax
-        ret
+    let mut code_generator = CodeGenerator::new();
+    let asm_ast = code_generator.generate(&program);
 
-    .section .note.GNU-stack,"",@progbits
+    if cli_args.codegen {
+        println!("AST PROGRAM: {:#?}", &asm_ast);
+        std::process::exit(0);
+    }
 
-"#;
-    if let Err(e) = std::fs::write(&output_file, fake_asm) {
+    let mut code_emitter = CodeEmitter::new();
+    let assembly = code_emitter.emit(&asm_ast);
+
+    if let Err(e) = std::fs::write(&output_file, assembly) {
         eprintln!("Failed to write asm: {e}");
         std::process::exit(1);
     }
@@ -113,7 +116,7 @@ main:
     output_file
 }
 
-fn assemble_and_link(asm_file: PathBuf) {
+fn assemble_and_link(cli_args: Cli, asm_file: PathBuf) {
     let input_file = asm_file.clone();
     let mut output_file = input_file.clone();
     if !output_file.set_extension("") {
@@ -139,11 +142,12 @@ fn assemble_and_link(asm_file: PathBuf) {
         std::process::exit(exit_status);
     }
 
-    // Delete the asm file
-    if let Err(e) = std::fs::remove_file(asm_file) {
-        eprintln!("Failed to delete asm file: {e}");
-        std::process::exit(1);
+    if !cli_args.emit_asm {
+        // Delete the asm file
+        if let Err(e) = std::fs::remove_file(asm_file) {
+            eprintln!("Failed to delete asm file: {e}");
+            std::process::exit(1);
+        }
     }
-
     std::process::exit(0);
 }

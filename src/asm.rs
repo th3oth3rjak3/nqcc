@@ -1,4 +1,17 @@
 #[derive(Debug, Clone, Copy)]
+pub enum Register {
+    RAX,
+    RBX,
+    RCX,
+    RDX,
+    RSI,
+    RDI,
+    RSP,
+    RBP,
+    EAX,
+}
+
+#[derive(Debug, Clone, Copy)]
 pub enum AsmType {
     /// 1 byte (8 bits)
     Byte,
@@ -21,6 +34,7 @@ pub enum AsmType {
 #[derive(Debug, Clone, Copy)]
 pub enum Operand {
     Imm(i64),
+    Reg(Register),
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -42,4 +56,5 @@ pub enum TopLevel {
     },
 }
 
+#[derive(Debug, Clone)]
 pub struct Program(pub Vec<TopLevel>);
