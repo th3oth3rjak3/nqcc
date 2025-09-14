@@ -20,16 +20,27 @@ pub enum Statement {
     ReturnStatement(Option<Expression>),
 }
 
+#[derive(Debug, Clone, Copy)]
+pub enum UnaryOperator {
+    Negate,
+    Complement,
+}
+
 #[derive(Debug, Clone)]
 pub enum Expression {
     ConstInt(i32),
     ConstLong(i64),
     ConstDouble(f64),
     StringConstant(String),
+    Grouping(Box<Expression>),
     If {
         condition: Box<Expression>,
         consequence: Box<Statement>,
         alternate: Option<Box<Statement>>,
+    },
+    Unary {
+        operator: UnaryOperator,
+        expr: Box<Expression>,
     },
 }
 

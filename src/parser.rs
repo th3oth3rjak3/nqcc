@@ -180,6 +180,19 @@ impl Parser {
         let tok = self.take()?;
         match tok.kind {
             TokenKind::ConstInt(val) => Ok(Expression::ConstInt(val)),
+            TokenKind::Minus => Ok(Expression::Unary {
+                operator: crate::ast::UnaryOperator::Negate,
+                expr: Box::new(self.parse_expression()?),
+            }),
+            TokenKind::Tilde => Ok(Expression::Unary {
+                operator: crate::ast::UnaryOperator::Complement,
+                expr: Box::new(self.parse_expression()?),
+            }),
+            TokenKind::LeftParen => {
+                let exp = self.parse_expression()?;
+                self.expect(TokenKind::RightParen)?;
+                Ok(Expression::Grouping(Box::new(exp)))
+            }
             _ => {
                 let err = format!("Expected: Integer; Got: {:#?}", tok.kind);
                 return Err(CompilerError::ParseError { message: err });

@@ -8,6 +8,7 @@ pub mod code_emission;
 pub mod codegen;
 pub mod driver;
 pub mod errors;
+pub mod ir;
 pub mod lexer;
 pub mod parser;
 pub mod tokens;
@@ -34,6 +35,10 @@ pub struct Cli {
     /// code emission.
     #[arg(long, action = ArgAction::SetTrue)]
     codegen: bool,
+
+    /// Only lex, parse, and generate a TACKY IR.
+    #[arg(long, action = ArgAction::SetTrue)]
+    tacky: bool,
 
     /// Emit assembly but do not link (-S)
     #[arg(short = 'S', action = ArgAction::SetTrue)]

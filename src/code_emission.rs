@@ -74,15 +74,54 @@ impl CodeEmitter {
                 let src_str = match src {
                     asm::Operand::Imm(val) => format!("${val}"),
                     asm::Operand::Reg(r) => format!("%{:?}", r).to_lowercase(),
+                    asm::Operand::Mem(name) => format!("-{}(%rbp)", name), // simple stack offset model for temps
                 };
 
                 let dst_str = match dst {
                     asm::Operand::Reg(r) => format!("%{:?}", r).to_lowercase(),
-                    _ => todo!("Only register destination supported for now"),
+                    asm::Operand::Mem(name) => format!("-{}(%rbp)", name),
+                    _ => panic!("Unsupported destination operand"),
                 };
 
                 format!("{mnemonic} {src_str}, {dst_str}")
             }
+
+            asm::Instruction::Neg { ty, dst } => {
+                let mnemonic = match ty {
+                    asm::AsmType::Byte => "negb",
+                    asm::AsmType::Longword => "negl",
+                    asm::AsmType::Quadword => "negq",
+                    asm::AsmType::Double => panic!("Cannot negate double"),
+                    asm::AsmType::ByteArray { .. } => panic!("Unsupported"),
+                };
+
+                let dst_str = match dst {
+                    asm::Operand::Reg(r) => format!("%{:?}", r).to_lowercase(),
+                    asm::Operand::Mem(name) => format!("-{}(%rbp)", name),
+                    _ => panic!("Unsupported operand for neg"),
+                };
+
+                format!("{mnemonic} {dst_str}")
+            }
+
+            asm::Instruction::Not { ty, dst } => {
+                let mnemonic = match ty {
+                    asm::AsmType::Byte => "notb",
+                    asm::AsmType::Longword => "notl",
+                    asm::AsmType::Quadword => "notq",
+                    asm::AsmType::Double => panic!("Cannot bitwise complement double"),
+                    asm::AsmType::ByteArray { .. } => panic!("Unsupported"),
+                };
+
+                let dst_str = match dst {
+                    asm::Operand::Reg(r) => format!("%{:?}", r).to_lowercase(),
+                    asm::Operand::Mem(name) => format!("-{}(%rbp)", name),
+                    _ => panic!("Unsupported operand for not"),
+                };
+
+                format!("{mnemonic} {dst_str}")
+            }
+
             asm::Instruction::Ret => "ret".into(),
         }
     }

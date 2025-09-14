@@ -31,14 +31,23 @@ pub enum AsmType {
     ByteArray { size: i64, alignment: i64 },
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub enum Operand {
     Imm(i64),
     Reg(Register),
+    Mem(String),
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub enum Instruction {
+    Neg {
+        ty: AsmType,
+        dst: Operand,
+    },
+    Not {
+        ty: AsmType,
+        dst: Operand,
+    },
     Mov {
         ty: AsmType,
         src: Operand,

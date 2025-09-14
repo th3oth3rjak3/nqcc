@@ -1,7 +1,8 @@
 use std::{path::PathBuf, process::Command};
 
 use crate::{
-    Cli, code_emission::CodeEmitter, codegen::CodeGenerator, lexer::Lexer, parser::Parser,
+    Cli, code_emission::CodeEmitter, codegen::CodeGenerator, ir::TackyGenerator, lexer::Lexer,
+    parser::Parser,
 };
 
 pub fn execute(cli_args: Cli) {
@@ -91,11 +92,19 @@ fn run_compiler(cli_args: Cli, preprocessed_file: PathBuf) -> PathBuf {
         std::process::exit(0);
     }
 
+    let mut tacky_gen = TackyGenerator::new();
+    let tacky_program = tacky_gen.emit_tacky_program(&program);
+
+    if cli_args.tacky {
+        println!("TACKY: {:#?}", &tacky_program);
+        std::process::exit(0);
+    }
+
     let mut code_generator = CodeGenerator::new();
-    let asm_ast = code_generator.generate(&program);
+    let asm_ast = code_generator.generate(&tacky_program);
 
     if cli_args.codegen {
-        println!("AST PROGRAM: {:#?}", &asm_ast);
+        println!("ASM PROGRAM: {:#?}", &asm_ast);
         std::process::exit(0);
     }
 

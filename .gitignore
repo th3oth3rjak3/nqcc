@@ -3,6 +3,7 @@
 
 source_files/return_2
 source_files/**/*.s
+source_files/**/*.i
 
 # Devenv
 .devenv*
