@@ -1,3 +1,15 @@
+# dev env
+**/.devbox/**
+/.rustup/**
+/~/**
+/.venv/**
+
+# Rust Stuff
+/target
+
+source_files/return_2
+source_files/**/*.s
+
 # Devenv
 .devenv*
 devenv.local.nix
@@ -8,9 +20,22 @@ devenv.local.nix
 # pre-commit
 .pre-commit-config.yaml
 
+# Devenv
+.devenv*
+devenv.local.nix
 
-# Added by cargo
+# direnv
+.direnv
 
-/target
-source_files/return_2
-source_files/**/*.s
+# pre-commit
+.pre-commit-config.yaml
+
+# Devenv
+.devenv*
+devenv.local.nix
+
+# direnv
+.direnv
+
+# pre-commit
+.pre-commit-config.yaml
