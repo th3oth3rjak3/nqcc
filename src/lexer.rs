@@ -71,6 +71,15 @@ impl<'src> Lexer<'src> {
             '{' => self.make_token(TokenKind::LeftBrace, start, true),
             '}' => self.make_token(TokenKind::RightBrace, start, true),
             ';' => self.make_token(TokenKind::Semicolon, start, true),
+            '~' => self.make_token(TokenKind::Tilde, start, true),
+            '-' => {
+                if self.peek_next() == '-' {
+                    self.advance();
+                    return self.make_token(TokenKind::MinusMinus, start, true);
+                } else {
+                    return self.make_token(TokenKind::Minus, start, true);
+                }
+            }
             _ => self.make_error(format!("unexpected character '{ch}'"), true),
         }
     }

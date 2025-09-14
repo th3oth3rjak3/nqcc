@@ -41,7 +41,9 @@ pub enum TokenKind {
     Comma,
     // Operators
     // Plus,
-    // Minus,
+    Minus,
+    MinusMinus,
+    Tilde,
     // Star,
     // Slash,
     // Equal,

@@ -1,9 +1,3 @@
-# dev env
-**/.devbox/**
-/.rustup/**
-/~/**
-/.venv/**
-
 # Rust Stuff
 /target
 
